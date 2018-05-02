@@ -4,11 +4,6 @@ import (
 	"github.com/siddontang/go-mysql/canal"
 	"strings"
 	"github.com/siddontang/go-mysql/schema"
-	"time"
-	"encoding/json"
-	"github.com/aliyun/aliyun-log-go-sdk"
-	"github.com/gogo/protobuf/proto"
-	"strconv"
 )
 
 const LOGHUB_DATE_FORMAT = "2006-01-02T15:04:05.000+08:00"
@@ -76,31 +71,4 @@ func ParsePayload(e *canal.RowsEvent) *DMLPayload {
 		Data: rowChanges,
 	}
 	return payload
-}
-
-func ParseLogGroup(e *canal.RowsEvent) (*sls.LogGroup, error){
-	now := time.Now()
-
-	payload := ParsePayload(e)
-	payloadBytes, err := json.Marshal(payload)
-	if err != nil {
-		return nil, err
-	}
-
-	logGroup := &sls.LogGroup{
-		Logs: []*sls.Log{
-			{
-				Time: proto.Uint32(uint32(now.Unix())),
-				Contents: []*sls.LogContent{
-					{Key: proto.String("id"), Value: proto.String(strconv.Itoa(int(now.Unix())))},
-					{Key: proto.String("level"), Value: proto.String("EVENT")},
-					{Key: proto.String("@timestamp"), Value: proto.String(now.Format(LOGHUB_DATE_FORMAT))},
-					{Key: proto.String("payload"), Value: proto.String(string(payloadBytes))},
-				},
-			},
-		},
-		Source: proto.String(""),
-		Topic: proto.String("DMLChangeEvent"),
-	}
-	return logGroup, nil
 }
