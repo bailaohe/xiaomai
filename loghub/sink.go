@@ -30,7 +30,7 @@ type EventRecord struct {
 	Message string `bson:"message"`
 
 	OperatorId int64 `bson:"operator_id"`
-	ModalType int `bson:"model_type"`
+	ModalType int `bson:"modal_type"`
 
 	Title string  `bson:"title"`
 	Content string  `bson:"content"`

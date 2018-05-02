@@ -27,8 +27,14 @@ type RowChange struct {
 
 func parseRowMap(columns *[]schema.TableColumn, row []interface{}) *map[string]interface{}{
 	rowMap := make(map[string]interface{})
-	for colId, colVal := range row {
-		rowMap[(*columns)[colId].Name] = colVal
+
+	nCol := len(*columns)
+	if len(row) < nCol {
+		nCol = len(row)
+	}
+
+	for colId := 0; colId < nCol; colId++ {
+		rowMap[(*columns)[colId].Name] = row[colId]
 	}
 	return &rowMap
 }
