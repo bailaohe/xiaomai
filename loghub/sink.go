@@ -77,7 +77,10 @@ func (self *LoghubSink) Parse(e *canal.RowsEvent) ([]interface{}, error) {
 	}
 
 	eventRecord := NewEventRecord(now, string(payloadBytes))
-	self.recorder.DB(self.recordDB).C(RECORDER_COLLECTION).Insert(eventRecord)
+	err = self.recorder.DB(self.recordDB).C(RECORDER_COLLECTION).Insert(eventRecord)
+	if err != nil {
+		return nil, err
+	}
 
 	logs := []interface{}{
 		&sls.Log{
