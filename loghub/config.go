@@ -8,4 +8,5 @@ type LoghubConfig struct {
 	LogStore string
 
 	RecorderAddr string
+	RecorderDB string
 }

@@ -136,12 +136,6 @@ func NewLoghubSink(conf *LoghubConfig) (*LoghubSink, error) {
 		return nil, err
 	}
 
-	err = session.Login(&mgo.Credential{
-		Username: conf.RecorderUser,
-		Password: conf.RecorderPass,
-		Mechanism: "SCRAM-SHA-1",
-	})
-
 	return &LoghubSink{
 		logStore: logStore,
 		idGen: node,
