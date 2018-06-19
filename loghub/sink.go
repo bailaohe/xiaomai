@@ -89,6 +89,7 @@ func (self *LoghubSink) Parse(e *canal.RowsEvent) ([]interface{}, error) {
 				{Key: proto.String("id"), Value: proto.String(eventRecord.ID.Hex())},
 				{Key: proto.String("level"), Value: proto.String("EVENT")},
 				{Key: proto.String("@timestamp"), Value: proto.String(now.Format(LOGHUB_DATE_FORMAT))},
+				{Key: proto.String("eventClass"), Value: proto.String("com.xiaomai.canal.event.DMLChangeEvent")},
 				{Key: proto.String("payload"), Value: proto.String(string(payloadBytes))},
 			},
 		},
