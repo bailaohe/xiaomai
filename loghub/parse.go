@@ -5,6 +5,7 @@ import (
 	"strings"
 	"github.com/siddontang/go-mysql/schema"
 	"github.com/bailaohe/xiaomai/loghub/data"
+	"reflect"
 )
 
 const LOGHUB_DATE_FORMAT = "2006-01-02T15:04:05.000+08:00"
@@ -64,8 +65,14 @@ func ParsePayload(e *canal.RowsEvent) *data.DMLPayload {
 
 			if len(columnChanged) == 0 {
 				for col := range afterUpdate {
-					if afterUpdate[col] != beforeUpdate[col] {
-						columnChanged = append(columnChanged, col)
+					if reflect.TypeOf(afterUpdate[col]).Comparable() {
+						if afterUpdate[col] != beforeUpdate[col] {
+							columnChanged = append(columnChanged, col)
+						}
+					} else {
+						if !reflect.DeepEqual(afterUpdate[col], beforeUpdate[col]) {
+							columnChanged = append(columnChanged, col)
+						}
 					}
 				}
 			}
