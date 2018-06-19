@@ -65,7 +65,7 @@ func ParsePayload(e *canal.RowsEvent) *data.DMLPayload {
 
 			if len(columnChanged) == 0 {
 				for col := range afterUpdate {
-					if reflect.TypeOf(afterUpdate[col]).Comparable() {
+					if afterUpdate[col] == nil || reflect.TypeOf(afterUpdate[col]).Comparable() {
 						if afterUpdate[col] != beforeUpdate[col] {
 							columnChanged = append(columnChanged, col)
 						}
