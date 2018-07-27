@@ -1,4 +1,4 @@
-package data
+package binlog
 
 import "github.com/siddontang/go-mysql/schema"
 

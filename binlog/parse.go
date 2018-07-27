@@ -1,14 +1,13 @@
-package loghub
+package binlog
 
 import (
 	"github.com/siddontang/go-mysql/canal"
 	"strings"
 	"github.com/siddontang/go-mysql/schema"
-	"github.com/bailaohe/xiaomai/loghub/data"
 	"reflect"
 )
 
-const LOGHUB_DATE_FORMAT = "2006-01-02T15:04:05.000+08:00"
+const DATE_FORMAT = "2006-01-02T15:04:05.000+08:00"
 
 func parseRowMap(columns *[]schema.TableColumn, row []interface{}) *map[string]interface{}{
 	rowMap := make(map[string]interface{})
@@ -35,11 +34,11 @@ func parseColumns(columns *[]schema.TableColumn) *map[string]schema.TableColumn 
 	return &metaMap
 }
 
-func ParsePayload(e *canal.RowsEvent) *data.DMLPayload {
-	rowChanges := []*data.RowChange{}
+func ParsePayload(e *canal.RowsEvent) *DMLPayload {
+	rowChanges := []*RowChange{}
 	if e.Action == canal.InsertAction {
 		for _, row := range e.Rows {
-			rowChanges = append(rowChanges, &data.RowChange{
+			rowChanges = append(rowChanges, &RowChange{
 				BeforeUpdate: map[string]interface{}{},
 				AfterUpdate: *parseRowMap(&e.Table.Columns, row),
 				ColumnsChanged: []string{},
@@ -47,7 +46,7 @@ func ParsePayload(e *canal.RowsEvent) *data.DMLPayload {
 		}
 	} else if e.Action == canal.DeleteAction {
 		for _, row := range e.Rows {
-			rowChanges = append(rowChanges, &data.RowChange{
+			rowChanges = append(rowChanges, &RowChange{
 				BeforeUpdate: *parseRowMap(&e.Table.Columns, row),
 				AfterUpdate: map[string]interface{}{},
 				ColumnsChanged: []string{},
@@ -77,7 +76,7 @@ func ParsePayload(e *canal.RowsEvent) *data.DMLPayload {
 				}
 			}
 
-			rowChanges = append(rowChanges, &data.RowChange{
+			rowChanges = append(rowChanges, &RowChange{
 				BeforeUpdate: beforeUpdate,
 				AfterUpdate: afterUpdate,
 				ColumnsChanged: columnChanged,
@@ -85,7 +84,7 @@ func ParsePayload(e *canal.RowsEvent) *data.DMLPayload {
 		}
 	}
 
-	payload := &data.DMLPayload{
+	payload := &DMLPayload{
 		EventType: strings.ToUpper(e.Action),
 		Db: e.Table.Schema,
 		Table: e.Table.Name,
