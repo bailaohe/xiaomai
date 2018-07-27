@@ -1,8 +1,7 @@
 package kafka
 
 type KafkaConfig struct {
-	kafkaHosts string
-	DMLTopic string
+	KafkaHosts string
 
 	RecorderAddr string
 	RecorderDB string

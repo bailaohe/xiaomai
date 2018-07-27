@@ -74,7 +74,7 @@ func NewKafkaSink(conf *KafkaConfig) (*KafkaSink, error) {
 	config := sarama.NewConfig()
 	config.Producer.Return.Successes = true
 	config.Producer.Timeout = 5 * time.Second
-	p, err := sarama.NewSyncProducer(strings.Split(conf.kafkaHosts, ","), config)
+	p, err := sarama.NewSyncProducer(strings.Split(conf.KafkaHosts, ","), config)
 	if err != nil {
 		return nil, err
 	}
