@@ -37,6 +37,7 @@ func (self *KafkaSink) Parse(e *canal.RowsEvent) ([]interface{}, error) {
 	message := map[string]string{
 		"id": eventRecord.ID.Hex(),
 		"level": "EVENT",
+		"topic": "DMLChangeEvent",
 		"timestamp": now.Format(binlog.DATE_FORMAT),
 		"eventClass": "com.xiaomai.canal.event.DMLChangeEvent",
 		"payload": string(payloadBytes),
@@ -90,7 +91,7 @@ func NewKafkaSink(conf *KafkaConfig) (*KafkaSink, error) {
 	}
 
 	return &KafkaSink{
-		producer: &p,
+		producer: p,
 		idGen: node,
 		recorder: session,
 		recordDB: conf.RecorderDB,
