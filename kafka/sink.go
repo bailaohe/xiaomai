@@ -38,7 +38,7 @@ func (self *KafkaSink) Parse(e *canal.RowsEvent) ([]interface{}, error) {
 			return nil, err
 		}
 
-		message := map[string]string{
+		message = map[string]string{
 			"id":         eventRecord.ID.Hex(),
 			"level":      "EVENT",
 			"topic":      "DMLChangeEvent",
@@ -47,8 +47,8 @@ func (self *KafkaSink) Parse(e *canal.RowsEvent) ([]interface{}, error) {
 			"payload":    string(payloadBytes),
 		}
 	} else {
-		message := map[string]string{
-			"id":         self.idGen.Generate().String()
+		message = map[string]string{
+			"id":         self.idGen.Generate().String(),
 			"level":      "EVENT",
 			"topic":      "DMLChangeEvent",
 			"timestamp":  now.Format(binlog.DATE_FORMAT),
