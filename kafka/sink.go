@@ -1,11 +1,12 @@
 package kafka
 
 import (
+	"context"
 	"encoding/json"
 	"strings"
 	"time"
 
-	"github.com/Shopify/sarama"
+	"github.com/segmentio/kafka-go"
 	"github.com/bailaohe/xiaomai/binlog"
 	"github.com/bwmarrin/snowflake"
 	"github.com/juju/errors"
@@ -14,7 +15,7 @@ import (
 )
 
 type KafkaSink struct {
-	producer sarama.SyncProducer
+	producer *kafka.Writer
 	idGen    *snowflake.Node
 	recorder *mgo.Session
 	recordDB string
@@ -63,9 +64,9 @@ func (self *KafkaSink) Parse(e *canal.RowsEvent) ([]interface{}, error) {
 	}
 
 	logs := []interface{}{
-		&sarama.ProducerMessage{
-			Topic: "DMLChangeEvent",
-			Value: sarama.ByteEncoder(messageBytes),
+		&kafka.Message{
+			Key: []byte(message["id"]),
+			Value: messageBytes,
 		},
 	}
 	return logs, nil
@@ -73,12 +74,12 @@ func (self *KafkaSink) Parse(e *canal.RowsEvent) ([]interface{}, error) {
 
 func (self *KafkaSink) Publish(reqs []interface{}) error {
 
-	var logs []*sarama.ProducerMessage
+	var logs []kafka.Message
 	for _, req := range reqs {
-		logs = append(logs, req.(*sarama.ProducerMessage))
+		logs = append(logs, *req.(*kafka.Message))
 	}
 
-	err := self.producer.SendMessages(logs)
+	err := self.producer.WriteMessages(context.Background(), logs...)
 	if err != nil {
 		return errors.Trace(err)
 	}
@@ -86,13 +87,11 @@ func (self *KafkaSink) Publish(reqs []interface{}) error {
 }
 
 func NewKafkaSink(conf *KafkaConfig) (*KafkaSink, error) {
-	config := sarama.NewConfig()
-	config.Producer.Return.Successes = true
-	config.Producer.Timeout = 5 * time.Second
-	p, err := sarama.NewSyncProducer(strings.Split(conf.KafkaHosts, ","), config)
-	if err != nil {
-		return nil, err
-	}
+	p := kafka.NewWriter(
+		kafka.WriterConfig{
+			Brokers: strings.Split(conf.KafkaHosts, ","),
+			Topic: "DBSyncEvent",
+		})
 
 	if conf.EnableRecorder {
 		node, err := snowflake.NewNode(binlog.MYSQL_SYNC_SERVICE_ID)
