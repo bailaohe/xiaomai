@@ -37,8 +37,8 @@ type EventRecord struct {
 func NewEventRecord(now time.Time, content string) *EventRecord {
 	return &EventRecord{
 		ID: bson.NewObjectId(),
-		Event: "DMLChangeEvent",
-		Topic: "DMLChangeEvent",
+		Event: "DBSyncEvent",
+		Topic: "DBSyncEvent",
 		GmtCreate: now,
 		GmtModify: now,
 		Status: 0,

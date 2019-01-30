@@ -11,7 +11,8 @@ import (
 	"github.com/bwmarrin/snowflake"
 	"github.com/juju/errors"
 	"github.com/siddontang/go-mysql/canal"
-	mgo "gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2"
+	"strconv"
 )
 
 type KafkaSink struct {
@@ -30,7 +31,7 @@ func (self *KafkaSink) Parse(e *canal.RowsEvent) ([]interface{}, error) {
 		return nil, err
 	}
 
-	var message map[string]string
+	var id string
 
 	if self.recorder != nil {
 		eventRecord := binlog.NewEventRecord(now, string(payloadBytes))
@@ -39,34 +40,22 @@ func (self *KafkaSink) Parse(e *canal.RowsEvent) ([]interface{}, error) {
 			return nil, err
 		}
 
-		message = map[string]string{
-			"id":         eventRecord.ID.Hex(),
-			"level":      "EVENT",
-			"topic":      "DMLChangeEvent",
-			"timestamp":  now.Format(binlog.DATE_FORMAT),
-			"eventClass": "com.xiaomai.canal.event.DMLChangeEvent",
-			"payload":    string(payloadBytes),
-		}
+		id = eventRecord.ID.Hex()
 	} else {
-		message = map[string]string{
-			"id":         self.idGen.Generate().String(),
-			"level":      "EVENT",
-			"topic":      "DMLChangeEvent",
-			"timestamp":  now.Format(binlog.DATE_FORMAT),
-			"eventClass": "com.xiaomai.canal.event.DMLChangeEvent",
-			"payload":    string(payloadBytes),
-		}
+		id = self.idGen.Generate().String()
 	}
 
-	messageBytes, err := json.Marshal(message)
-	if err != nil {
-		return nil, err
+	headers := []kafka.Header{
+		{"XMEventClass", []byte("com.xiaomai.event.DBSyncEvent")},
+		{"XMEventTriggerTime", []byte(strconv.FormatInt(now.Unix(), 10))},
+		{"XMEventId", []byte(id)},
 	}
 
 	logs := []interface{}{
 		&kafka.Message{
-			Key: []byte(message["id"]),
-			Value: messageBytes,
+			Key:   []byte(id),
+			Value: payloadBytes,
+			Headers: headers,
 		},
 	}
 	return logs, nil
@@ -90,7 +79,7 @@ func NewKafkaSink(conf *KafkaConfig) (*KafkaSink, error) {
 	p := kafka.NewWriter(
 		kafka.WriterConfig{
 			Brokers: strings.Split(conf.KafkaHosts, ","),
-			Topic: "DBSyncEvent",
+			Topic:   "DBSyncEvent",
 		})
 
 	if conf.EnableRecorder {
