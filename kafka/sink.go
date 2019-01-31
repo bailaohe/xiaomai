@@ -83,25 +83,25 @@ func NewKafkaSink(conf *KafkaConfig) (*KafkaSink, error) {
 		})
 
 	if conf.EnableRecorder {
-		node, err := snowflake.NewNode(binlog.MYSQL_SYNC_SERVICE_ID)
-		if err != nil {
-			return nil, err
-		}
 		session, err := mgo.Dial(conf.RecorderAddr)
 		if err != nil {
 			return nil, err
 		}
 		return &KafkaSink{
 			producer: p,
-			idGen:    node,
+			idGen:    nil,
 			recorder: session,
 			recordDB: conf.RecorderDB,
 		}, nil
 	}
 
+	node, err := snowflake.NewNode(binlog.MYSQL_SYNC_SERVICE_ID)
+	if err != nil {
+		return nil, err
+	}
 	return &KafkaSink{
 		producer: p,
-		idGen:    nil,
+		idGen:    node,
 		recorder: nil,
 		recordDB: "",
 	}, nil
